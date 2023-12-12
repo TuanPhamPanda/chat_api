@@ -1,13 +1,13 @@
 import Response from './Response'
 
-const notFoundDatabase = (tableName: string, id: string) => {
+const notFoundDatabase = (tableName: string, id: string): Response => {
     return {
         err: 1,
         msg: `No ${tableName} found with id ${id}`
     }
 }
 
-const internalSeverDatabase = (message: string) => {
+const internalSeverDatabase = (message: string): Response => {
     return {
         err: 1,
         msg: message

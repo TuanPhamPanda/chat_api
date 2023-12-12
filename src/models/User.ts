@@ -61,6 +61,10 @@ User.init(
             type: DataTypes.STRING,
             allowNull: false
         },
+        picture: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         given_name: {
             type: DataTypes.STRING,
             allowNull: false,

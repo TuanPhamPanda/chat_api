@@ -1,36 +1,29 @@
-import { internalServer, badRequest, upload } from '@/middlewares'
-import { FileAttributes, MessageAttributes } from '@/models'
 import { Request, Response } from 'express'
 import joi from 'joi'
-import { messageService, CreateMessageAttributesService } from '@/services'
+
+import { internalServer, badRequest, upload } from '@/middlewares'
+import { FileAttributes, MessageAttributes } from '@/models'
+import { Response as ResponseData } from '@/constants'
+import { messageService, CreateMessageAttributesService, UpdateMessageAttributesService } from '@/services'
 import { cloudinary } from '@/helpers'
 
 class MessageController {
-    public async createMessage(request: Request, response: Response) {
+    public async createMessageRoom(request: Request, response: Response) {
         try {
             let file: FileAttributes | undefined
-
             if (request.file) {
                 file = {
-                    fileName: request.file.originalname,
+                    fileName: request.file.filename,
                     path: request.file.path,
                     originalName: request.file.originalname
                 }
             }
 
-            const validateData = joi.object<CreateMessageAttributesService>({
-                type: joi.string().valid('room', 'person').required(),
-                roomString: joi.when('type', {
-                    is: 'room',
-                    then: joi.string().required(),
-                    otherwise: joi.string().allow('')
-                }),
-                usersString: joi.when('type', {
-                    is: 'room',
-                    then: joi.array().items(joi.string()).optional(),
-                    otherwise: joi.array().items(joi.string()).length(2).required()
-                }),
-                contentMessage: joi.string().optional(),
+            const messageSchema = joi.object<CreateMessageAttributesService>({
+                type: joi.string().valid('message', 'file').required(),
+                contentMessage: joi.string().required(),
+                idRoom: joi.string().uuid({ version: 'uuidv4' }).required(),
+                idUser: joi.string().uuid({ version: 'uuidv4' }).required(),
                 fileAttributes: joi
                     .object<FileAttributes>({
                         fileName: joi.string().required(),
@@ -38,32 +31,156 @@ class MessageController {
                         originalName: joi.string().required()
                     })
                     .optional()
-                    .xor('contentMessage'),
-                idUser: joi.string().required()
             })
-            if (file) {
-                const { error, value } = validateData.validate({ ...request.body, file: file })
 
+            if (file) {
+                const { error, value } = messageSchema.validate({
+                    ...request.body,
+                    idUser: (request as any).idUser,
+                    type: 'file',
+                    fileAttributes: file
+                })
                 if (error) {
                     await cloudinary.uploader.destroy(file.fileName)
                     return badRequest(response, error.details[0].message)
                 }
-
-                const createdMessage = await messageService.createMessage(value)
-                return response.status(201).json(createdMessage)
+                value.contentMessage = file.path
+                const message: ResponseData = await messageService.createMessage(value)
+                return response.status(message.err ? 400 : 201).json(message)
             } else {
-                const { error, value } = validateData.validate(request.body)
+                const { error, value } = messageSchema.validate({
+                    ...request.body,
+                    type: 'message',
+                    idUser: (request as any).idUser
+                })
                 if (error) {
                     return badRequest(response, error.details[0].message)
                 }
-                const createdMessage = await messageService.createMessage(value)
-                return response.status(201).json(createdMessage)
+                const message: ResponseData = await messageService.createMessage(value)
+                if (message.err) {
+                    if (value.type === 'file' && value.fileAttributes) {
+                        await cloudinary.uploader.destroy(value.fileAttributes.fileName)
+                    }
+                }
+                return response.status(message.err ? 400 : 201).json(message)
             }
-        } catch (error) {
+        } catch (err) {
             if (request.file) {
                 await cloudinary.uploader.destroy(request.file.filename)
             }
-            return internalServer(response, error)
+            return internalServer(response, err)
+        }
+    }
+
+    public async getMessageRoom(request: Request, response: Response) {
+        try {
+            const { error, value } = joi
+                .object({
+                    idRoom: joi.string().uuid({ version: 'uuidv4' }).required(),
+                    idUser: joi.string().uuid({ version: 'uuidv4' }).required()
+                })
+                .validate({ idRoom: request.params?.idRoom, idUser: (request as any).idUser })
+            if (error) {
+                return badRequest(response, error.details[0].message)
+            }
+            const message: ResponseData = await messageService.getMessagesByIdRoom(value)
+            return response.status(message.err ? 400 : 201).json(message)
+        } catch (err) {
+            return internalServer(response, err)
+        }
+    }
+
+    public async updateMessage(request: Request, response: Response) {
+        try {
+            let file: FileAttributes | undefined
+            if (request.file) {
+                file = {
+                    fileName: request.file.filename,
+                    path: request.file.path,
+                    originalName: request.file.originalname,
+                    id: request.body?.idFile
+                }
+            }
+
+            const messageSchema = joi.object<UpdateMessageAttributesService>({
+                type: joi.string().valid('message', 'file').required(),
+                contentMessage: joi.string().required(),
+                idRoom: joi.string().uuid({ version: 'uuidv4' }).required(),
+                idUser: joi.string().uuid({ version: 'uuidv4' }).required(),
+                idMessage: joi.string().uuid({ version: 'uuidv4' }).required(),
+                fileAttributes: joi
+                    .object<FileAttributes>({
+                        fileName: joi.string().required(),
+                        path: joi.string().uri().required(),
+                        originalName: joi.string().required(),
+                        id: joi.string().uuid({ version: 'uuidv4' }).required()
+                    })
+                    .optional()
+            })
+
+            if (file) {
+                if (request.body.idFile) {
+                    delete request.body.idFile
+                }
+                const { error, value } = messageSchema.validate({
+                    ...request.body,
+                    idUser: (request as any).idUser,
+                    type: 'file',
+                    fileAttributes: file,
+                    idMessage: request.params.id
+                })
+                if (error) {
+                    await cloudinary.uploader.destroy(file.fileName)
+
+                    if (error.details[0].message.includes('fileAttributes.id')) {
+                        return badRequest(response, error.details[0].message.replace('fileAttributes.id', 'idFIle'))
+                    }
+
+                    return badRequest(response, error.details[0].message)
+                }
+                value.contentMessage = file.path
+                const message: ResponseData = await messageService.updateMessage(value)
+                if (message.err) {
+                    if (value.type === 'file' && value.fileAttributes) {
+                        await cloudinary.uploader.destroy(value.fileAttributes.fileName)
+                    }
+                }
+                return response.status(message.err ? 400 : 201).json(message)
+            } else {
+                const { error, value } = messageSchema.validate({
+                    ...request.body,
+                    type: 'message',
+                    idUser: (request as any).idUser,
+                    idMessage: request.params.id
+                })
+                if (error) {
+                    return badRequest(response, error.details[0].message)
+                }
+                const message: ResponseData = await messageService.updateMessage(value)
+                return response.status(message.err ? 400 : 201).json(message)
+            }
+        } catch (err) {
+            if (request.file) {
+                await cloudinary.uploader.destroy(request.file.filename)
+            }
+            return internalServer(response, err)
+        }
+    }
+
+    public async deleteMessage(request: Request, response: Response) {
+        try {
+            const { error, value } = joi
+                .string()
+                .uuid({ version: 'uuidv4' })
+                .required()
+                .validate(request.params?.id)
+            if (error) {
+                return badRequest(response, error.details[0].message)
+            }
+            const message: ResponseData = await messageService.deleteMessage(value)
+            return response.status(message.err ? 400 : 200).json(message)
+        } catch (err) {
+            return internalServer(response, err)
         }
     }
 }

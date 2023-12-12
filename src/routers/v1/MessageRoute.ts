@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { messageController } from '@/controllers'
-import { upload } from '@/middlewares'
+import { upload, authorization } from '@/middlewares'
 
 class MessageRoute {
     private router: Router
@@ -11,7 +11,28 @@ class MessageRoute {
     }
 
     private initializeRoutes() {
-        this.router.post('/', upload.single('file'), messageController.createMessage)
+        this.router.post(
+            '/',
+            upload.single('file'),
+            authorization.handleAuthentication,
+            authorization.checkUserInRoom,
+            messageController.createMessageRoom
+        )
+
+        this.router.post('/:idRoom', authorization.handleAuthentication, messageController.getMessageRoom)
+        this.router.delete(
+            '/:id',
+            authorization.handleAuthentication,
+            authorization.checkUserInRoom,
+            messageController.deleteMessage
+        )
+        this.router.put(
+            '/:id',
+            upload.single('file'),
+            authorization.handleAuthentication,
+            authorization.checkUserInRoom,
+            messageController.updateMessage
+        )
     }
 
     public get getRouter(): Router {

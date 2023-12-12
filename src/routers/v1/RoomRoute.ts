@@ -10,7 +10,7 @@ class RoomRoute {
     }
 
     private initializeRoutes() {
-        this.router.get('/', roomController.getRooms)
+        this.router.get('/user/:idUser', roomController.getRoomsByIdUser)
         this.router.post('/create-room', roomController.createRoom)
         this.router.put('/invite-member-room', roomController.inviteMemberRoom)
         this.router.put('/chase-member-room', roomController.chaseMemberRoom)

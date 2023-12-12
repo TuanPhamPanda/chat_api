@@ -1,7 +1,8 @@
-import { badRequest, internalServer } from '@/middlewares'
-import { roomService } from '@/services'
 import { Request, Response } from 'express'
 import joi from 'joi'
+import { badRequest, internalServer } from '@/middlewares'
+import { roomService } from '@/services'
+import { Response as ResponseData } from '@/constants'
 class RoomController {
     //create room
     public async createRoom(request: Request, response: Response) {
@@ -9,13 +10,13 @@ class RoomController {
             const { error, value } = joi
                 .object<{ roomName: string; userId: string }>({
                     roomName: joi.string().required(),
-                    userId: joi.string().required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.body)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room = await roomService.createRoom(value.roomName, value.userId)
-            return response.status(201).json(room)
+            const room: ResponseData = await roomService.createRoom(value.roomName, value.userId)
+            return response.status(room.err ? 400 : 201).json(room)
         } catch (error) {
             return internalServer(response, error)
         }
@@ -27,13 +28,13 @@ class RoomController {
             const { error, value } = joi
                 .object<{ roomName: string; userId: string }>({
                     roomName: joi.string().required(),
-                    userId: joi.string().required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.body)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room = await roomService.inviteMemberRoom(value.roomName, value.userId)
-            return response.status(201).json(room)
+            const room: ResponseData = await roomService.inviteMemberRoom(value.roomName, value.userId)
+            return response.status(room.err ? 400 : 201).json(room)
         } catch (error) {
             return internalServer(response, error)
         }
@@ -45,23 +46,29 @@ class RoomController {
             const { error, value } = joi
                 .object<{ roomName: string; userId: string }>({
                     roomName: joi.string().required(),
-                    userId: joi.string().required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.body)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room: any = await roomService.chaseMemberRoom(value.roomName, value.userId)
-            return response.status(room?.msg ? 400 : 201).json(room)
+            const room: ResponseData = await roomService.chaseMemberRoom(value.roomName, value.userId)
+            return response.status(room.err ? 400 : 201).json(room)
         } catch (error) {
             return internalServer(response, error)
         }
     }
 
-    //get all room
-    public async getRooms(request: Request, response: Response) {
+    //get all room includes for a user
+    public async getRoomsByIdUser(request: Request, response: Response) {
         try {
-            const rooms = await roomService.getAllRooms()
-            return response.status(200).json(rooms)
+            const { error, value } = joi
+                .object<{ idUser: string }>({ idUser: joi.string().uuid({ version: 'uuidv4' }).required() })
+                .validate(request.params)
+            if (error) {
+                return badRequest(response, error.details[0].message)
+            }
+            const rooms: ResponseData = await roomService.getAllRooms(value.idUser)
+            return response.status(rooms.err ? 400 : 200).json(rooms)
         } catch (error) {
             return internalServer(response, error)
         }
@@ -72,12 +79,12 @@ class RoomController {
         try {
             const { error, value } = joi
                 .object<{ id: string }>({
-                    id: joi.string().required()
+                    id: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.params)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room: any = await roomService.deleteRoom(value.id)
+            const room: ResponseData = await roomService.deleteRoom(value.id)
             return response.status(room.err ? 400 : 200).json(room)
         } catch (error) {
             return internalServer(response, error)
@@ -89,12 +96,12 @@ class RoomController {
         try {
             const { error, value } = joi
                 .object<{ id: string }>({
-                    id: joi.string().required()
+                    id: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.params)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room: any = await roomService.getRoomById(value.id)
+            const room: ResponseData = await roomService.getRoomById(value.id)
             return response.status(room.err ? 400 : 200).json(room)
         } catch (error) {
             return internalServer(response, error)

@@ -10,9 +10,7 @@ class AuthorizationController {
             const user = await authorizationService.signInGoogle(new User(request.body))
             return response.status(201).json(user)
         } catch (error) {
-            console.log(error)
-
-            return internalServer(response, error)
+            return internalServer(response, JSON.stringify(error))
         }
     }
 }

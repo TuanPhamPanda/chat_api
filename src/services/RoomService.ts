@@ -1,4 +1,4 @@
-import { responseFindDatabase, internalSeverDatabase } from '@/constants'
+import { responseFindDatabase, internalSeverDatabase, Response } from '@/constants'
 import { File, Room, Message, User, RoomAttributes } from '@/models'
 import { cloudinary } from '@/helpers'
 import { generateFolder } from '@/utils'
@@ -26,21 +26,29 @@ class RoomService {
         )
     }
 
-    public async getAllRooms() {
-        try {
-            const roomsAll = await Room.findAll()
+    public getAllRooms(idUser: string): Promise<Response> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const user = await User.findByPk(idUser)
+                if (!user) {
+                    return resolve(responseFindDatabase({ err: 1, msg: 'User not found' }))
+                }
 
-            if (roomsAll.length === 0) {
-                return responseFindDatabase({ err: 0, response: { rooms: [] } })
+                const roomsAll = await Room.findAll()
+                const roomsByIdUser = roomsAll.filter((room: Room) => room.$users && room.$users.includes(idUser))
+
+                if (roomsByIdUser.length === 0) {
+                    return resolve(responseFindDatabase({ err: 0, response: { rooms: [] } }))
+                }
+                const rooms = await this.getRooms(roomsByIdUser)
+                return resolve(responseFindDatabase({ err: 0, response: { rooms: rooms } }))
+            } catch (error: any) {
+                return reject(internalSeverDatabase(error))
             }
-            const rooms = await this.getRooms(roomsAll)
-            return { err: 0, rooms: rooms }
-        } catch (error: any) {
-            return internalSeverDatabase(error)
-        }
+        })
     }
 
-    public getRoomById(id: string) {
+    public getRoomById(id: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const existingRoom = await Room.findByPk(id)
@@ -55,7 +63,7 @@ class RoomService {
         })
     }
 
-    public createRoom(roomName: string, userId: string) {
+    public createRoom(roomName: string, userId: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const user = await User.findByPk(userId)
@@ -82,7 +90,7 @@ class RoomService {
     }
 
     //Invite a member to the room
-    public inviteMemberRoom(roomName: string, userID: string) {
+    public inviteMemberRoom(roomName: string, userID: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const existingRoom = await Room.findOne({ where: { roomName: roomName } })
@@ -135,14 +143,13 @@ class RoomService {
                     }
                 }
             } catch (error: any) {
-                console.log(error)
                 return reject(internalSeverDatabase(error))
             }
         })
     }
 
     //Chase a member to the room
-    public chaseMemberRoom(roomName: string, userID: string) {
+    public chaseMemberRoom(roomName: string, userID: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const existingRoom = await Room.findOne({ where: { roomName: roomName } })
@@ -201,7 +208,7 @@ class RoomService {
         })
     }
 
-    deleteRoom(id: string) {
+    public deleteRoom(id: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const room = await Room.findByPk(id)
@@ -237,7 +244,6 @@ class RoomService {
                     //Xóa thư mục
                     await cloudinary.api.delete_folder(folderName)
                 } catch (err: any) {
-                    console.log(err)
                     return reject(internalSeverDatabase(err.error.message))
                 }
 

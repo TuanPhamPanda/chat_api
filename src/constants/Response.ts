@@ -1,5 +1,5 @@
 export default class Response {
-    err?: number
+    err?: 0 | 1
     response?: any
     msg?: string
 

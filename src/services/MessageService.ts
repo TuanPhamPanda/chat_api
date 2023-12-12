@@ -1,337 +1,308 @@
-import { internalSeverDatabase, notFoundDatabase, responseFindDatabase } from '@/constants'
+import { internalSeverDatabase, notFoundDatabase, responseFindDatabase, Response } from '@/constants'
+import { cloudinary } from '@/helpers'
 import { FileAttributes, Message, Room, User, File } from '@/models'
 
 export interface CreateMessageAttributesService {
-    type: 'room' | 'person'
-    roomString: string
+    idRoom: string
     idUser: string
-    contentMessage?: string
+    contentMessage: string
+    type: 'message' | 'file'
     fileAttributes?: FileAttributes
-    usersString?: string[]
+}
+
+export interface UpdateMessageAttributesService extends CreateMessageAttributesService {
+    idMessage: string
 }
 
 class MessageService {
-    createMessage({
+    public updateMessage({
         type,
-        roomString,
+        idRoom,
+        idUser,
         contentMessage,
-        fileAttributes,
-        usersString,
-        idUser
-    }: CreateMessageAttributesService) {
+        idMessage,
+        fileAttributes
+    }: UpdateMessageAttributesService): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
-                switch (type) {
-                    case 'room':
-                        {
-                            const user = await User.findByPk(idUser)
-
-                            if (!user) {
-                                return resolve(notFoundDatabase('user', idUser))
-                            }
-
-                            const room = await Room.findOne({ where: { roomName: roomString } })
-                            if (!room) {
-                                return resolve(
-                                    responseFindDatabase({
-                                        err: 1,
-                                        msg: `Room not found with name ${roomString}`
-                                    })
-                                )
-                            }
-                            let message: Message
-                            if (fileAttributes) {
-                                const file = new File(fileAttributes)
-                                await file.save()
-                                if (file) {
-                                    message = new Message({
-                                        idFile: file.$id,
-                                        contentMessage: file.$originalName,
-                                        idRoom: room.$id,
-                                        idUser: idUser
-                                    })
-                                    await message.save()
-                                    return resolve(responseFindDatabase({ err: 0, response: { message, room } }))
-                                }
-                            } else {
-                                message = new Message({
-                                    idRoom: room.$id,
-                                    contentMessage: contentMessage,
-                                    idUser: idUser
-                                })
-                                await message.save()
-                                return resolve(responseFindDatabase({ err: 0, response: { message, room } }))
-                            }
-                        }
-                        break
-                    case 'person':
-                        {
-                            if (usersString && usersString.length === 2) {
-                                const users = await Promise.all(
-                                    usersString.map(async (userString: string) => {
-                                        const u = await User.findByPk(userString)
-                                        return u
-                                    })
-                                )
-
-                                if (!users.some((u) => u === null)) {
-                                    const room = await Room.findOne({ where: { roomName: '', users: users } })
-                                    if (!room) {
-                                        return resolve(
-                                            responseFindDatabase({
-                                                err: 1,
-                                                msg: `Room not found with users: ${usersString}`
-                                            })
-                                        )
-                                    } else {
-                                        let message: Message
-                                        if (fileAttributes) {
-                                            const file = new File(fileAttributes)
-                                            await file.save()
-                                            if (file) {
-                                                message = new Message({
-                                                    idFile: file.$id,
-                                                    contentMessage: file.$originalName,
-                                                    idRoom: room.$id,
-                                                    idUser: idUser
-                                                })
-                                                await message.save()
-                                                return resolve(
-                                                    responseFindDatabase({ err: 0, response: { message, room } })
-                                                )
-                                            }
-                                        } else {
-                                            message = new Message({
-                                                idRoom: room.$id,
-                                                contentMessage: contentMessage,
-                                                idUser: idUser
-                                            })
-                                            await message.save()
-                                            return resolve(
-                                                responseFindDatabase({ err: 0, response: { message, room } })
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        break
-                }
-            } catch (error: any) {
-                return reject(internalSeverDatabase(error))
-            }
-        })
-    }
-
-    getMessages(roomString?: string, usersString?: []) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                if (roomString) {
-                    const room = await Room.findOne({ where: { roomName: roomString } })
-                    if (!room) {
-                        return resolve(
-                            responseFindDatabase({
-                                err: 1,
-                                msg: `Room not found with name ${roomString}`
-                            })
-                        )
-                    }
-                    const messages = await Message.findAll({
-                        where: { idRoom: room.$id },
-                        attributes: { exclude: ['idFile', 'idRoom', 'createdAt'] },
-                        include: [
-                            {
-                                model: File,
-                                as: 'file',
-                                attributes: ['id', 'fileName', 'path', 'originalName']
-                            },
-                            {
-                                model: Room,
-                                as: 'room',
-                                attributes: ['id', 'roomName', 'users']
-                            }
+                const room = await Room.findByPk(idRoom, { attributes: { include: ['id', 'roomName', 'users'] } })
+                const user = await User.findByPk(idUser, {
+                    attributes: {
+                        include: ['id', 'name', 'given_name', 'family_name', 'picture', 'createdAt'],
+                        exclude: [
+                            'iss',
+                            'nbf',
+                            'aud',
+                            'email',
+                            'azp',
+                            'iat',
+                            'exp',
+                            'jti',
+                            'updatedAt',
+                            'sub',
+                            'email_verified'
                         ]
-                    })
-                    return resolve(responseFindDatabase({ err: 0, response: { messages } }))
-                } else {
-                    if (usersString && usersString.length > 0 && usersString.length < 2) {
-                        const users = await Promise.all(
-                            usersString.map(async (userString: string) => {
-                                const u = await User.findByPk(userString)
-                                return u
-                            })
-                        )
-                        if (!users.some((u) => u === null)) {
-                            return resolve(
-                                responseFindDatabase({
-                                    err: 1,
-                                    msg: `Could not find one of the 2 id ${users[0]}, ${users[1]} in the user table`
-                                })
-                            )
-                        }
-
-                        if (!users.some((u) => u === null)) {
-                            const room = await Room.findOne({ where: { roomName: '', users: users } })
-                            if (!room) {
-                                return resolve(
-                                    responseFindDatabase({
-                                        err: 1,
-                                        msg: `Room not found with users: ${usersString}`
-                                    })
-                                )
-                            }
-
-                            const messages = await Message.findAll({
-                                where: { idRoom: room.$id },
-                                attributes: { exclude: ['idFile', 'idRoom', 'createAt'] },
-                                include: [
-                                    {
-                                        model: File,
-                                        as: 'file',
-                                        attributes: ['id', 'fileName', 'path', 'originalName']
-                                    },
-                                    {
-                                        model: Room,
-                                        as: 'room',
-                                        attributes: ['id', 'roomName', 'users']
-                                    }
-                                ]
-                            })
-                            return resolve(responseFindDatabase({ err: 0, response: { messages } }))
-                        }
                     }
+                })
+                const message = await Message.findByPk(idMessage, {})
+                if (!message) {
+                    return resolve(responseFindDatabase({ err: 1, msg: 'Message not found' }))
                 }
-            } catch (error: any) {
-                return reject(internalSeverDatabase(error))
-            }
-        })
-    }
 
-    updateMessage(
-        type: 'room' | 'person',
-        roomString: string,
-        messageId: string,
-        contentMessage: string,
-        usersString?: string[]
-    ) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                //query room with 2 id
                 switch (type) {
-                    case 'room': {
-                        const room = await Room.findByPk(roomString)
-                        if (!room) {
+                    case 'message': {
+                        if (message.$idFile) {
                             return resolve(
-                                responseFindDatabase({
-                                    err: 1,
-                                    msg: `Room not found with name ${roomString}`
-                                })
+                                responseFindDatabase({ err: 1, msg: 'Files cannot be edited using messages' })
                             )
-                        } else {
-                            const message = await Message.findOne({ where: { idRoom: room.$id } })
-                            if (!message) {
-                                return resolve(
-                                    responseFindDatabase({
-                                        err: 1,
-                                        msg: `Message not found with message id: ${messageId}`
-                                    })
-                                )
-                            } else {
-                                await message.update({ contentMessage: contentMessage })
-                                return resolve(responseFindDatabase({ err: 0, response: message }))
-                            }
                         }
-                    }
-                    case 'person':
-                        {
-                            if (usersString && usersString.length > 0 && usersString.length < 2) {
-                                const users = await Promise.all(
-                                    usersString.map(async (userString: string) => {
-                                        const u = await User.findByPk(userString)
-                                        return u
-                                    })
-                                )
-                                if (!users.some((u) => u === null)) {
-                                    return resolve(
-                                        responseFindDatabase({
-                                            err: 1,
-                                            msg: `Could not find one of the 2 id ${users[0]}, ${users[1]} in the user table`
-                                        })
-                                    )
-                                }
-                                const room = await Room.findOne({ where: { roomName: '', users: users } })
-                                if (!room) {
-                                    return resolve(
-                                        responseFindDatabase({
-                                            err: 1,
-                                            msg: `Room not found with users: ${usersString}`
-                                        })
-                                    )
-                                } else {
-                                    const message = await Message.findOne({
-                                        where: { idRoom: room.$id, id: messageId }
-                                    })
-                                    if (!message) {
-                                        return resolve(
-                                            responseFindDatabase({
-                                                err: 1,
-                                                msg: `Message not found with message id: ${messageId}`
-                                            })
-                                        )
-                                    } else {
-                                        await message.update({ contentMessage: contentMessage })
-                                        return resolve(responseFindDatabase({ err: 0, response: message }))
-                                    }
-                                }
-                            }
-                        }
-                        break
-                }
-            } catch (error: any) {
-                return reject(internalSeverDatabase(error))
-            }
-        })
-    }
 
-    deleteMessage(idMessage: string) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const existingMessage = await Message.findByPk(idMessage)
-                if (!existingMessage) {
-                    return resolve(
-                        responseFindDatabase({
-                            err: 1,
-                            msg: `Message not found with message id: ${idMessage}`
-                        })
-                    )
-                } else {
-                    const room = await Room.findByPk(existingMessage.$idRoom)
-                    if (!room) {
+                        const [affectedRows] = await Message.update(
+                            { contentMessage: contentMessage, id: message.$id },
+                            { where: { id: message.$id } }
+                        )
+                        if (affectedRows === 0) {
+                            return resolve(responseFindDatabase({ err: 1, msg: 'Failed to update message' }))
+                        }
+
+                        const messageResponse = {
+                            message: message.dataValues,
+                            user: user?.dataValues,
+                            room: room?.dataValues
+                        }
+
                         return resolve(
                             responseFindDatabase({
-                                err: 1,
-                                msg: `Room not found with room id: ${existingMessage.$idRoom}`
+                                err: 0,
+                                response: { message: { messageResponse } }
                             })
                         )
-                    } else {
-                        if (existingMessage.$idFile) {
-                            const file = await File.findByPk(existingMessage.$idFile)
-                            if (file) {
-                                //delete to cloundinary
-                                await file.destroy()
-                            }
+                    }
+                    case 'file': {
+                        const file = await File.findByPk(fileAttributes?.id)
+                        if (!file) {
+                            return resolve(responseFindDatabase({ err: 1, msg: 'File not found' }))
                         }
-                        await existingMessage.destroy()
+
+                        await cloudinary.uploader.destroy(file.$fileName)
+
+                        const [affectedRowsFile] = await File.update(
+                            { ...fileAttributes },
+                            {
+                                where: { id: fileAttributes?.id }
+                            }
+                        )
+                        const [affectedRowsMessage] = await Message.update(
+                            { contentMessage: contentMessage, id: message.$id },
+                            { where: { id: message.$id } }
+                        )
+                        if (affectedRowsMessage === 0 && affectedRowsFile === 0) {
+                            return resolve(responseFindDatabase({ err: 1, msg: 'Failed to update message or file' }))
+                        }
+
+                        const messageResponse = {
+                            message: message.dataValues,
+                            room: room?.dataValues,
+                            file: file.dataValues,
+                            user: user?.dataValues
+                        }
 
                         return resolve(
-                            responseFindDatabase({ err: 0, msg: `Deleted message with id ${idMessage} successfully` })
+                            responseFindDatabase({
+                                err: 0,
+                                response: { message: messageResponse }
+                            })
                         )
+                    }
+                }
+            } catch (error) {
+                reject(internalSeverDatabase(JSON.stringify(error)))
+            }
+        })
+    }
+
+    public createMessage({
+        type,
+        idRoom,
+        idUser,
+        contentMessage,
+        fileAttributes
+    }: CreateMessageAttributesService): Promise<Response> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const room = await Room.findByPk(idRoom, { attributes: { include: ['id', 'roomName', 'users'] } })
+                if (!room) {
+                    return resolve(notFoundDatabase('room', idRoom))
+                }
+
+                const user = await User.findByPk(idUser, {
+                    attributes: {
+                        include: ['id', 'name', 'given_name', 'family_name', 'picture', 'createdAt'],
+                        exclude: [
+                            'iss',
+                            'nbf',
+                            'aud',
+                            'email',
+                            'azp',
+                            'iat',
+                            'exp',
+                            'jti',
+                            'updatedAt',
+                            'sub',
+                            'email_verified'
+                        ]
+                    }
+                })
+
+                switch (type) {
+                    case 'file': {
+                        const file = new File(fileAttributes)
+                        await file.save()
+
+                        const idFile = file.$id
+                        const newMessage = new Message({ idUser, contentMessage, idRoom, idFile })
+                        await newMessage.save()
+                        const message = {
+                            room,
+                            file,
+                            user
+                        }
+                        return resolve(responseFindDatabase({ err: 0, response: { message: message } }))
+                    }
+                    case 'message': {
+                        const newMessage = new Message({ idUser, contentMessage, idRoom })
+                        await newMessage.save()
+                        const message = {
+                            message: newMessage,
+                            user: user,
+                            room: room
+                        }
+
+                        return resolve(responseFindDatabase({ err: 0, response: { message: message } }))
                     }
                 }
             } catch (error: any) {
                 return reject(internalSeverDatabase(error))
             }
         })
+    }
+
+    public getMessagesByIdRoom({ idRoom, idUser }: { idRoom: string; idUser: string }): Promise<Response> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const room = await Room.findByPk(idRoom, { attributes: { include: ['id', 'roomName', 'users'] } })
+                if (!room) {
+                    return resolve(notFoundDatabase('room', idRoom))
+                }
+                if (!room.$users?.some((u) => u.includes(idUser))) {
+                    return resolve(responseFindDatabase({ err: 1, msg: 'User not found in room' }))
+                }
+                const messages = await Message.findAll({
+                    where: { idRoom: idRoom },
+                    attributes: {
+                        exclude: ['idRoom', 'idFile', 'idUser'],
+                        include: ['id', 'contentMessage', 'createdAt', 'updatedAt']
+                    },
+                    include: [
+                        {
+                            model: File,
+                            as: 'file',
+                            attributes: ['id', 'fileName', 'path', 'originalName']
+                        },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: {
+                                include: ['id', 'name', 'given_name', 'family_name', 'picture', 'createdAt'],
+                                exclude: [
+                                    'iss',
+                                    'nbf',
+                                    'aud',
+                                    'email',
+                                    'azp',
+                                    'iat',
+                                    'exp',
+                                    'jti',
+                                    'updatedAt',
+                                    'sub',
+                                    'email_verified'
+                                ]
+                            }
+                        },
+                        {
+                            model: Room,
+                            as: 'room',
+                            attributes: { include: ['id', 'roomName', 'users'] }
+                        }
+                    ]
+                })
+
+                return resolve(responseFindDatabase({ err: 0, response: { messages: messages } }))
+            } catch (error: any) {
+                return reject(internalSeverDatabase(error))
+            }
+        })
+    }
+
+    /*
+    public deleteMessage(id: string): Promise<Response> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const message = await Message.findByPk(id)
+                if (!message) {
+                    return resolve(notFoundDatabase('message', id))
+                }
+                const idFile = message.$idFile
+                if (idFile) {
+                    const file = await File.findByPk(idFile)
+                    if (!file) {
+                        return resolve(notFoundDatabase('file', idFile))
+                    }
+                    await cloudinary.uploader.destroy(file.$fileName)
+                    await file.destroy()
+                }
+                await message.destroy()
+                return resolve(responseFindDatabase({ err: 0, msg: 'Deleted message successfully!' }))
+            } catch (error) {
+                return reject(internalSeverDatabase(JSON.stringify(error)))
+            }
+        })
+    }
+    */
+
+    public async deleteMessage(id: string): Promise<Response> {
+        try {
+            const message = await Message.findByPk(id)
+
+            if (!message) {
+                return notFoundDatabase('message', id)
+            }
+
+            const idFile = message.$idFile
+            const tasks: Promise<void>[] = []
+
+            if (idFile) {
+                tasks.push(
+                    (async () => {
+                        const file = await File.findByPk(idFile)
+
+                        if (file) {
+                            await cloudinary.uploader.destroy(file.$fileName)
+                            await file.destroy()
+                        } else {
+                            throw notFoundDatabase('file', idFile)
+                        }
+                    })()
+                )
+            }
+
+            await Promise.all(tasks)
+
+            await message.destroy()
+            return responseFindDatabase({ err: 0, msg: 'Deleted message successfully!' })
+        } catch (error) {
+            return internalSeverDatabase(JSON.stringify(error))
+        }
     }
 }
 

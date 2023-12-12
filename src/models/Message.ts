@@ -81,7 +81,7 @@ class Message extends Model {
         return this.createdAt
     }
 
-    public set $createdAt(createdAt: Date) {
+    public set $createdAt(createdAt: Date | undefined) {
         this.createdAt = createdAt
     }
 
@@ -89,7 +89,7 @@ class Message extends Model {
         return this.updatedAt
     }
 
-    public set $updatedAt(updatedAt: Date) {
+    public set $updatedAt(updatedAt: Date | undefined) {
         this.updatedAt = updatedAt
     }
 }

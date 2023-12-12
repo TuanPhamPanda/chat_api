@@ -1,0 +1,331 @@
+{
+	"info": {
+		"_postman_id": "e38e16c0-33bf-4ff0-88b2-29cdf225305d",
+		"name": "chat",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24733210"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Sign In Google",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"iss\": \"https://accounts.google.com\",\r\n    \"nbf\": 1701865674,\r\n    \"aud\": \"675030167092-e7dlnspiu14sekiv6fbv2jfnic2oitga.apps.googleusercontent.com\",\r\n    \"sub\": 110506127534122810000,\r\n    \"email\": \"tp7142992@gmail.com\",\r\n    \"email_verified\": true,\r\n    \"azp\": \"675030167092-e7dlnspiu14sekiv6fbv2jfnic2oitga.apps.googleusercontent.com\",\r\n    \"name\": \"Tuan Pham\",\r\n    \"picture\": \"https://lh3.googleusercontent.com/a/ACg8ocLWWW5Jef0mRV7RYJ3kCQ9wIXpAc7f6GSghvW9rQsvV=s96-c\",        \r\n    \"given_name\": \"Tuan\",\r\n    \"family_name\": \"Pham\",\r\n    \"iat\": 1701865974,\r\n    \"exp\": 1701869574,\r\n    \"jti\": \"feefe6c374c29f52639afc1b9b72beb08eee64eb\"    \r\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/auth/signup-google",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"signup-google"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "room",
+			"item": [
+				{
+					"name": "create room",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"roomName\": \"room 4\",\r\n    \"userId\": \"217832ca-cdcd-43fb-b447-59f25261fb09\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/create-room",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"create-room"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invite Room",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"roomName\": \"room 3\",\r\n    \"userId\": \"9bcf0af8-0833-4a13-a12f-698a5b1916b4\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/invite-member-room",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"invite-member-room"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Chase Room",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"roomName\": \"room 3\",\r\n    \"userId\": \"9bcf0af8-0833-4a13-a12f-698a5b1916b4\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/chase-member-room",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"chase-member-room"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all room  by id user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/cf3e668b-ef29-49e6-a096-6c772f4e25d3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"cf3e668b-ef29-49e6-a096-6c772f4e25d3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete room by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/346167a9-4297-4f81-9b36-145a1df507e8",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"346167a9-4297-4f81-9b36-145a1df507e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get room by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/v1/room/40fc3ded-b2ec-428d-add7-886365c1fe07",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"room",
+								"40fc3ded-b2ec-428d-add7-886365c1fe07"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "message",
+			"item": [
+				{
+					"name": "create message",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "idUser",
+									"value": "217832ca-cdcd-43fb-b447-59f25261fb09",
+									"type": "text"
+								},
+								{
+									"key": "contentMessage",
+									"value": "abc",
+									"type": "text"
+								},
+								{
+									"key": "idRoom",
+									"value": "52eba257-0a3e-40dc-a98c-7070408df01f",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/ANH TUAN/Pictures/2.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/message/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"message",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getMessageByIdRoom_User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idUser\":\"cf3e668b-ef29-49e6-a096-6c772f4e25d3\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/message/52eba257-0a3e-40dc-a98c-7070408df01f",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"message",
+								"52eba257-0a3e-40dc-a98c-7070408df01f"
+							],
+							"query": [
+								{
+									"key": "idUser",
+									"value": "[{\"key\":\"idUser\",\"value\":\"217832ca-cdcd-43fb-b447-59f25261fb09\",\"description\":\"\",\"type\":\"text\",\"enabled\":true}]",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete message",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idUser\": \"217832ca-cdcd-43fb-b447-59f25261fb09\", \r\n    \"idRoom\": \"52eba257-0a3e-40dc-a98c-7070408df01f\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/message/faf918f4-6b53-4fa5-86d2-866700f1867c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"message",
+								"faf918f4-6b53-4fa5-86d2-866700f1867c"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
