@@ -201,8 +201,9 @@ class MessageService {
                     where: { idRoom: idRoom },
                     attributes: {
                         exclude: ['idRoom', 'idFile', 'idUser'],
-                        include: ['id', 'contentMessage', 'createdAt', 'updatedAt']
+                        include: ['id', 'contentMessage', 'updatedAt']
                     },
+                    order: [['updatedAt', 'DESC']],
                     include: [
                         {
                             model: File,

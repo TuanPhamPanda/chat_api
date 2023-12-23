@@ -11,6 +11,7 @@ export interface MessageAttributes {
     idRoom?: string
     idFile?: string
     contentMessage?: string
+    updatedAt?: Date
 }
 
 class Message extends Model {
@@ -19,8 +20,6 @@ class Message extends Model {
     private idFile?: string
     private contentMessage?: string
     private idUser?: string
-
-    private createdAt?: Date
     private updatedAt?: Date
 
     constructor(messageAttributes?: MessageAttributes) {
@@ -35,6 +34,7 @@ class Message extends Model {
         this.idFile = messageAttributes?.idFile
         this.contentMessage = messageAttributes?.contentMessage
         this.idUser = messageAttributes?.idUser
+        this.updatedAt = messageAttributes?.updatedAt
     }
 
     public get $id(): string | undefined {
@@ -75,14 +75,6 @@ class Message extends Model {
 
     public set $idUser(idUser: string) {
         this.idUser = idUser
-    }
-
-    public get $createdAt(): Date | undefined {
-        return this.createdAt
-    }
-
-    public set $createdAt(createdAt: Date | undefined) {
-        this.createdAt = createdAt
     }
 
     public get $updatedAt(): Date | undefined {

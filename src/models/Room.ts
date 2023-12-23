@@ -7,12 +7,14 @@ export interface RoomAttributes {
     id?: string
     roomName?: string
     users?: string[]
+    background?: string
 }
 
 class Room extends Model {
     private id?: string
     private users?: string[]
     private roomName?: string
+    private background?: string
 
     private createdAt?: Date
     private updatedAt?: Date
@@ -25,6 +27,7 @@ class Room extends Model {
             } else {
                 this.id = roomAttributes.id
             }
+            this.background = roomAttributes.background
             this.users = roomAttributes.users
             this.roomName = roomAttributes.roomName
         }
@@ -52,6 +55,14 @@ class Room extends Model {
 
     public set $roomName(value: string | undefined) {
         this.roomName = value
+    }
+
+    public get $background(): string | undefined {
+        return this.background
+    }
+
+    public set $background(value: string | undefined) {
+        this.background = value
     }
 
     public get $createdAt(): Date | undefined {

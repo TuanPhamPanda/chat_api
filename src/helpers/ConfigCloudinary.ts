@@ -15,7 +15,7 @@ cloudinary.config({
     api_secret: process.env.API_SECRET
 })
 
-interface CustomCloudinaryStorageOptions {
+interface ICustomCloudinaryStorageOptions {
     cloudinary: any
     params: {
         folder: (req: Request, file: Express.Multer.File) => Promise<string>
@@ -26,7 +26,7 @@ interface CustomCloudinaryStorageOptions {
 class CustomCloudinaryStorage implements StorageEngine {
     private storage: StorageEngine
 
-    constructor(options: CustomCloudinaryStorageOptions) {
+    constructor(options: ICustomCloudinaryStorageOptions) {
         this.storage = new (MulterCloudinary as any)(options)
     }
 
