@@ -7,6 +7,7 @@ export interface FileAttributes {
     fileName: string
     path: string
     originalName: string
+    size: number
 }
 
 class File extends Model {
@@ -16,6 +17,7 @@ class File extends Model {
     private originalName!: string
     private createdAt?: Date
     private updatedAt?: Date
+    private size?: number
 
     constructor(fileAttributes?: FileAttributes) {
         super()
@@ -29,6 +31,7 @@ class File extends Model {
             this.fileName = fileAttributes.fileName
             this.path = fileAttributes.path
             this.originalName = fileAttributes.originalName
+            this.size = fileAttributes.size
         }
     }
 
@@ -79,6 +82,14 @@ class File extends Model {
     public set $updatedAt(updatedAt: Date) {
         this.updatedAt = updatedAt
     }
+
+    public set $size(size: number) {
+        this.size = size
+    }
+
+    public get $size(): number | undefined {
+        return this.size
+    }
 }
 
 File.init(
@@ -97,6 +108,10 @@ File.init(
         },
         path: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        size: {
+            type: DataTypes.NUMBER,
             allowNull: false
         },
         createdAt: {

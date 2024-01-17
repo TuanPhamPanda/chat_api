@@ -7,7 +7,6 @@ class User extends Model {
     declare iss: string
     declare nbf: number
     declare aud: string
-    declare sub: number
     declare email: string
     declare email_verified: boolean
     declare azp: string
@@ -18,6 +17,7 @@ class User extends Model {
     declare iat: number
     declare exp: number
     declare jti: string
+    declare sub: string
 
     declare createdAt: Date
     declare updatedAt: Date
@@ -42,7 +42,7 @@ User.init(
             allowNull: false
         },
         sub: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING(21),
             allowNull: false
         },
         email: {

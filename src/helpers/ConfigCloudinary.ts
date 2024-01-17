@@ -15,12 +15,15 @@ cloudinary.config({
     api_secret: process.env.API_SECRET
 })
 
+interface ICustomCloudinaryParams {
+    folder: (req: Request, file: Express.Multer.File) => Promise<string>
+    public_id: (req: Request, file: Express.Multer.File) => string
+    resource_type: (req: Request, file: Express.Multer.File) => string
+}
+
 interface ICustomCloudinaryStorageOptions {
     cloudinary: any
-    params: {
-        folder: (req: Request, file: Express.Multer.File) => Promise<string>
-        public_id: (req: Request, file: Express.Multer.File) => string
-    }
+    params: ICustomCloudinaryParams
 }
 
 class CustomCloudinaryStorage implements StorageEngine {
@@ -66,7 +69,24 @@ const storage: StorageEngine = new CustomCloudinaryStorage({
         folder: getFolders,
         public_id: (req: Request, file: Express.Multer.File): string => {
             const filename = file.originalname
-            return filename.substring(0, filename.lastIndexOf('.')) + `-${v4()}`
+            if (file.mimetype.includes('image') || file.mimetype.includes('video')) {
+                return filename.substring(0, filename.lastIndexOf('.')) + `-${v4()}`
+            } else {
+                return (
+                    filename.substring(0, filename.lastIndexOf('.')) +
+                    `-${v4()}` +
+                    filename.substring(filename.lastIndexOf('.') - 1)
+                )
+            }
+        },
+        resource_type: (req: Request, file: Express.Multer.File): string => {
+            if (file.mimetype.includes('image')) {
+                return 'image'
+            } else if (file.mimetype.includes('video')) {
+                return 'video'
+            } else {
+                return 'raw'
+            }
         }
     }
 })

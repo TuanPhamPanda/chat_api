@@ -19,7 +19,7 @@ class MessageRoute {
             messageController.createMessageRoom
         )
 
-        this.router.post('/:idRoom', authorization.handleAuthentication, messageController.getMessageRoom)
+        this.router.get('/:idRoom', messageController.getAllMessageByIdRoom)
         this.router.delete(
             '/:id',
             authorization.handleAuthentication,

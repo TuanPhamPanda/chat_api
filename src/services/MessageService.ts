@@ -44,7 +44,7 @@ class MessageService {
                         ]
                     }
                 })
-                const message = await Message.findByPk(idMessage, {})
+                const message = await Message.findByPk(idMessage)
                 if (!message) {
                     return resolve(responseFindDatabase({ err: 1, msg: 'Message not found' }))
                 }

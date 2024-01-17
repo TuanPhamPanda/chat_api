@@ -1,13 +1,17 @@
-import { DataTypes, Model, JSON as JSONType } from 'sequelize'
+import { DataTypes, Model } from 'sequelize'
 import { v4 } from 'uuid'
-
 import sequelize from './Sequelize'
 
 export interface RoomAttributes {
     id?: string
+    description?: string
     roomName?: string
     users?: string[]
     background?: string
+    groupAvatar?: string
+    fileName?: string
+    createdAt?: string
+    updatedAt?: string
 }
 
 class Room extends Model {
@@ -15,9 +19,12 @@ class Room extends Model {
     private users?: string[]
     private roomName?: string
     private background?: string
+    private groupAvatar?: string
+    private fileName?: string
+    private description?: string
 
-    private createdAt?: Date
-    private updatedAt?: Date
+    private createdAt?: string
+    private updatedAt?: string
 
     constructor(roomAttributes?: RoomAttributes) {
         super()
@@ -30,6 +37,11 @@ class Room extends Model {
             this.background = roomAttributes.background
             this.users = roomAttributes.users
             this.roomName = roomAttributes.roomName
+            this.groupAvatar = roomAttributes.groupAvatar
+            this.fileName = roomAttributes.fileName
+            this.createdAt = roomAttributes.createdAt
+            this.updatedAt = roomAttributes.updatedAt
+            this.description = roomAttributes.description
         }
     }
 
@@ -65,20 +77,44 @@ class Room extends Model {
         this.background = value
     }
 
-    public get $createdAt(): Date | undefined {
+    public get $groupAvatar() {
+        return this.groupAvatar
+    }
+
+    public set $fileName(value: string | undefined) {
+        this.fileName = value
+    }
+
+    public get $fileName() {
+        return this.fileName
+    }
+
+    public set $groupAvatar(value: string | undefined) {
+        this.groupAvatar = value
+    }
+
+    public get $createdAt(): string | undefined {
         return this.createdAt
     }
 
-    public set $createdAt(value: Date | undefined) {
+    public set $createdAt(value: string | undefined) {
         this.createdAt = value
     }
 
-    public get $updatedAt(): Date | undefined {
+    public get $updatedAt(): string | undefined {
         return this.updatedAt
     }
 
-    public set $updatedAt(value: Date | undefined) {
+    public set $updatedAt(value: string | undefined) {
         this.updatedAt = value
+    }
+
+    public get $description(): string | undefined {
+        return this.description
+    }
+
+    public set $description(value: string | undefined) {
+        this.description = value
     }
 }
 
@@ -91,6 +127,22 @@ Room.init(
         roomName: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        description: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        groupAvatar: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        background: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        fileName: {
+            type: DataTypes.STRING,
+            allowNull: true
         },
         users: {
             type: DataTypes.JSON,
@@ -130,7 +182,7 @@ Room.addHook('afterCreate', async (room: Room) => {
 })
 
 Room.addHook('beforeValidate', async (room: Room) => {
-    room.$updatedAt = new Date()
+    room.$updatedAt = new Date().toString()
 })
 
 export default Room

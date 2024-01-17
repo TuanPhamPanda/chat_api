@@ -8,14 +8,15 @@ class RoomController {
     public async createRoom(request: Request, response: Response) {
         try {
             const { error, value } = joi
-                .object<{ roomName: string; userId: string }>({
+                .object<{ roomName: string; userId: string; description: string }>({
                     roomName: joi.string().required(),
+                    description: joi.string().required(),
                     userId: joi.string().uuid({ version: 'uuidv4' }).required()
                 })
                 .validate(request.body)
 
             if (error) return badRequest(response, error.details[0].message)
-            const room: ResponseData = await roomService.createRoom(value.roomName, value.userId)
+            const room: ResponseData = await roomService.createRoom(value.roomName, value.userId, value.description)
             return response.status(room.err ? 400 : 201).json(room)
         } catch (error) {
             return internalServer(response, error)
@@ -67,7 +68,7 @@ class RoomController {
             if (error) {
                 return badRequest(response, error.details[0].message)
             }
-            const rooms: ResponseData = await roomService.getAllRooms(value.idUser)
+            const rooms: ResponseData = await roomService.getAllRoomByIdUser(value.idUser)
             return response.status(rooms.err ? 400 : 200).json(rooms)
         } catch (error) {
             return internalServer(response, error)

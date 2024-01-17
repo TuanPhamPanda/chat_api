@@ -2,45 +2,121 @@ import { responseFindDatabase, internalSeverDatabase, Response } from '@/constan
 import { File, Room, Message, User, RoomAttributes } from '@/models'
 import { cloudinary } from '@/helpers'
 import { generateFolder } from '@/utils'
+import { IMessageDTO, IRoomDTO, IUserDTO } from '@/dto'
+import { Op } from 'sequelize'
 
 class RoomService {
     private async getRooms(rooms: Room[]) {
         return Promise.all(
             rooms.map(async (room) => {
-                const users = await this.getUsers(room.get('users') as string[])
-                return {
-                    id: room.$id,
-                    roomName: room.$roomName,
+                const [users, responseMessage] = await Promise.all([
+                    this.getUsers(room.get('users') as string[]),
+                    this.getMessagesByRoomId(room.dataValues.id, 1)
+                ])
+                const responseRoom: IRoomDTO = {
+                    id: room.dataValues.id,
+                    background: room.dataValues.background,
+                    messages: responseMessage,
+                    roomName: room.dataValues.roomName,
+                    updatedAt: room.dataValues.updatedAt,
+                    groupAvatar: room.dataValues.groupAvatar,
+                    fileName: room.dataValues.fileName,
+                    description: room.dataValues.description,
                     users: users
                 }
+
+                return responseRoom
             })
         )
     }
 
     private async getUsers(usersInRoom: string[]) {
-        return Promise.all(
-            usersInRoom.map(async (u) => {
-                const user = await User.findByPk(u)
-                return user ? user.dataValues : null
-            })
-        )
+        const userPromises = usersInRoom.map((u) => User.findByPk(u))
+
+        const users = await Promise.all(userPromises)
+
+        return users.map((user) => {
+            const responseUser: IUserDTO = {
+                id: user?.dataValues.id,
+                familyName: user?.dataValues.family_name,
+                givenName: user?.dataValues.given_name,
+                name: user?.dataValues.given_name,
+                picture: user?.dataValues.picture
+            }
+            return responseUser
+        })
     }
 
-    public getAllRooms(idUser: string): Promise<Response> {
+    public async getAllMessageByIdRoom(id: string): Promise<Response> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const existingRoom = await Room.findByPk(id)
+                if (!existingRoom) {
+                    return resolve(responseFindDatabase({ err: 1, msg: 'Room not found' }))
+                }
+                const messages = await this.getMessagesByRoomId(id)
+                return resolve(responseFindDatabase({ err: 0, response: { messages } }))
+            } catch (error: any) {
+                return reject(internalSeverDatabase(error))
+            }
+        })
+    }
+
+    private async getMessagesByRoomId(roomId: string, limit?: number) {
+        const messages = await Message.findAll({
+            where: { idRoom: roomId },
+            order: [['updatedAt', 'ASC']],
+            limit
+        })
+
+        const messagePromises = messages.map(async (message) => {
+            const user = await User.findByPk(message.$idUser)
+            const file = await File.findByPk(message.$idFile)
+
+            const responseMessage: IMessageDTO = {
+                id: message.dataValues.id,
+                content: message.dataValues.contentMessage,
+                user: {
+                    familyName: user?.dataValues.family_name,
+                    givenName: user?.dataValues.given_name,
+                    id: user?.dataValues.id,
+                    name: user?.dataValues.name,
+                    picture: user?.dataValues.picture
+                },
+                type: file ? 'file' : 'message',
+                updatedAt: message.dataValues.updatedAt,
+                idFile: file ? file.dataValues.id : undefined,
+                fileSize: file ? file.dataValues.size : undefined,
+                fileName: file ? file.dataValues.originalName : undefined
+            }
+            return responseMessage
+        })
+
+        return Promise.all(messagePromises)
+    }
+
+    //get All Room By Id User
+    public getAllRoomByIdUser(idUser: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const user = await User.findByPk(idUser)
                 if (!user) {
                     return resolve(responseFindDatabase({ err: 1, msg: 'User not found' }))
                 }
-
-                const roomsAll = await Room.findAll()
-                const roomsByIdUser = roomsAll.filter((room: Room) => room.$users && room.$users.includes(idUser))
-
+                const roomsByIdUser = await Room.findAll({
+                    where: {
+                        users: {
+                            [Op.substring]: idUser
+                        }
+                    },
+                    order: [['updatedAt', 'DESC']]
+                })
                 if (roomsByIdUser.length === 0) {
                     return resolve(responseFindDatabase({ err: 0, response: { rooms: [] } }))
                 }
+
                 const rooms = await this.getRooms(roomsByIdUser)
+
                 return resolve(responseFindDatabase({ err: 0, response: { rooms: rooms } }))
             } catch (error: any) {
                 return reject(internalSeverDatabase(error))
@@ -63,12 +139,12 @@ class RoomService {
         })
     }
 
-    public createRoom(roomName: string, userId: string): Promise<Response> {
+    public createRoom(roomName: string, userId: string, description: string): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
                 const user = await User.findByPk(userId)
                 if (!user) {
-                    return reject(responseFindDatabase({ err: 1, msg: 'User not found' }))
+                    return resolve(responseFindDatabase({ err: 1, msg: 'User not found' }))
                 }
                 const room = await Room.findOne({ where: { roomName: roomName } })
                 if (room) {
@@ -79,10 +155,31 @@ class RoomService {
                         })
                     )
                 }
-                const newRoom = new Room({ roomName: roomName, users: [userId] })
+                const newRoom = new Room({ roomName, users: [userId], description })
                 await newRoom.save()
                 await cloudinary.api.create_folder(generateFolder(newRoom.dataValues.id))
-                return resolve(responseFindDatabase({ err: 0, response: { room: newRoom.dataValues } }))
+
+                const responseUser: IUserDTO = {
+                    id: user.id,
+                    familyName: user.family_name,
+                    givenName: user.given_name,
+                    name: user.name,
+                    picture: user.picture
+                }
+
+                const responseRoom: IRoomDTO = {
+                    background: '',
+                    id: newRoom.dataValues.id,
+                    messages: [],
+                    roomName: newRoom.dataValues.roomName,
+                    updatedAt: newRoom.dataValues.updatedAt,
+                    groupAvatar: newRoom.dataValues.groupAvatar,
+                    fileName: newRoom.dataValues.fileName,
+                    description: newRoom.dataValues.description,
+                    users: [responseUser]
+                }
+
+                return resolve(responseFindDatabase({ err: 0, response: { room: responseRoom } }))
             } catch (error: any) {
                 return reject(internalSeverDatabase(error))
             }

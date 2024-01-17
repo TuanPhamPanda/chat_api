@@ -4,7 +4,7 @@ import joi from 'joi'
 import { internalServer, badRequest, upload } from '@/middlewares'
 import { FileAttributes, MessageAttributes } from '@/models'
 import { Response as ResponseData } from '@/constants'
-import { messageService, CreateMessageAttributesService, UpdateMessageAttributesService } from '@/services'
+import { messageService, CreateMessageAttributesService, UpdateMessageAttributesService, roomService } from '@/services'
 import { cloudinary } from '@/helpers'
 
 class MessageController {
@@ -15,7 +15,8 @@ class MessageController {
                 file = {
                     fileName: request.file.filename,
                     path: request.file.path,
-                    originalName: request.file.originalname
+                    originalName: request.file.originalname,
+                    size: request.file.size
                 }
             }
 
@@ -28,7 +29,8 @@ class MessageController {
                     .object<FileAttributes>({
                         fileName: joi.string().required(),
                         path: joi.string().uri().required(),
-                        originalName: joi.string().required()
+                        originalName: joi.string().required(),
+                        size: joi.number().required()
                     })
                     .optional()
             })
@@ -72,23 +74,33 @@ class MessageController {
         }
     }
 
-    public async getMessageRoom(request: Request, response: Response) {
+    public async getAllMessageByIdRoom(request: Request, response: Response) {
         try {
-            const { error, value } = joi
-                .object({
-                    idRoom: joi.string().uuid({ version: 'uuidv4' }).required(),
-                    idUser: joi.string().uuid({ version: 'uuidv4' }).required()
-                })
-                .validate({ idRoom: request.params?.idRoom, idUser: (request as any).idUser })
-            if (error) {
-                return badRequest(response, error.details[0].message)
-            }
-            const message: ResponseData = await messageService.getMessagesByIdRoom(value)
-            return response.status(message.err ? 400 : 201).json(message)
-        } catch (err) {
-            return internalServer(response, err)
+            const { error, value } = joi.string().uuid({ version: 'uuidv4' }).validate(request.params.idRoom)
+            if (error) return badRequest(response, error.details[0].message)
+            const messages: ResponseData = await roomService.getAllMessageByIdRoom(value)
+            return response.status(messages.err ? 400 : 200).json(messages)
+        } catch (error) {
+            return internalServer(response, error)
         }
     }
+
+    // public async getMessageByIdRoom(request: Request, response: Response) {
+    //     try {
+    //         const { error, value } = joi
+    //             .object<{ idRoom: string }>({
+    //                 idRoom: joi.string().uuid({ version: 'uuidv4' }).required()
+    //             })
+    //             .validate({ idRoom: request.params?.idRoom, idUser: (request as any).idUser })
+    //         if (error) {
+    //             return badRequest(response, error.details[0].message)
+    //         }
+    //         const responseData: ResponseData = await roomService.getAllMessageByIdRoom(value.idRoom)
+    //         return response.status(responseData.err ? 400 : 201).json(responseData)
+    //     } catch (err) {
+    //         return internalServer(response, err)
+    //     }
+    // }
 
     public async updateMessage(request: Request, response: Response) {
         try {
@@ -98,7 +110,8 @@ class MessageController {
                     fileName: request.file.filename,
                     path: request.file.path,
                     originalName: request.file.originalname,
-                    id: request.body?.idFile
+                    id: request.body?.idFile,
+                    size: request.file.size
                 }
             }
 
@@ -113,7 +126,8 @@ class MessageController {
                         fileName: joi.string().required(),
                         path: joi.string().uri().required(),
                         originalName: joi.string().required(),
-                        id: joi.string().uuid({ version: 'uuidv4' }).required()
+                        id: joi.string().uuid({ version: 'uuidv4' }).required(),
+                        size: joi.number().required()
                     })
                     .optional()
             })

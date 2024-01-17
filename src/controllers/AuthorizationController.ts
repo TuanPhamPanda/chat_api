@@ -8,7 +8,7 @@ class AuthorizationController {
     public async signInGoogle(request: Request, response: Response) {
         try {
             const user = await authorizationService.signInGoogle(new User(request.body))
-            return response.status(201).json(user)
+            return response.status(200).json(user)
         } catch (error) {
             return internalServer(response, JSON.stringify(error))
         }
