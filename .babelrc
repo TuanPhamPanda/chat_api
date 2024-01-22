@@ -1,17 +1,22 @@
 {
-  "presets": [
-    "@babel/preset-env",
-    "@babel/preset-typescript"
-  ],
+  "presets": ["@babel/preset-env", "@babel/preset-typescript"],
   "plugins": [
     [
-      "module-resolver",
-      {
-        "root": ["./"],
-        "alias": {
-          "@": "./src"
-        }
+    "@babel/plugin-transform-typescript", {
+      "allowDeclareFields": true
+    }
+  ],
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-transform-runtime",
+    "source-map-support",
+  [
+    "module-resolver", {
+      "root": ["./"],
+      "alias": {
+        "@": "./src"
       }
-    ]
+    }
   ]
+  ],
+  "sourceMaps": "inline"
 }

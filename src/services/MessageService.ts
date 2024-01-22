@@ -21,7 +21,7 @@ class MessageService {
         idUser,
         contentMessage,
         idMessage,
-        fileAttributes
+        fileAttributes,
     }: UpdateMessageAttributesService): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -40,9 +40,9 @@ class MessageService {
                             'jti',
                             'updatedAt',
                             'sub',
-                            'email_verified'
-                        ]
-                    }
+                            'email_verified',
+                        ],
+                    },
                 })
                 const message = await Message.findByPk(idMessage)
                 if (!message) {
@@ -53,13 +53,13 @@ class MessageService {
                     case 'message': {
                         if (message.$idFile) {
                             return resolve(
-                                responseFindDatabase({ err: 1, msg: 'Files cannot be edited using messages' })
+                                responseFindDatabase({ err: 1, msg: 'Files cannot be edited using messages' }),
                             )
                         }
 
                         const [affectedRows] = await Message.update(
                             { contentMessage: contentMessage, id: message.$id },
-                            { where: { id: message.$id } }
+                            { where: { id: message.$id } },
                         )
                         if (affectedRows === 0) {
                             return resolve(responseFindDatabase({ err: 1, msg: 'Failed to update message' }))
@@ -68,14 +68,14 @@ class MessageService {
                         const messageResponse = {
                             message: message.dataValues,
                             user: user?.dataValues,
-                            room: room?.dataValues
+                            room: room?.dataValues,
                         }
 
                         return resolve(
                             responseFindDatabase({
                                 err: 0,
-                                response: { message: { messageResponse } }
-                            })
+                                response: { message: { messageResponse } },
+                            }),
                         )
                     }
                     case 'file': {
@@ -89,12 +89,12 @@ class MessageService {
                         const [affectedRowsFile] = await File.update(
                             { ...fileAttributes },
                             {
-                                where: { id: fileAttributes?.id }
-                            }
+                                where: { id: fileAttributes?.id },
+                            },
                         )
                         const [affectedRowsMessage] = await Message.update(
                             { contentMessage: contentMessage, id: message.$id },
-                            { where: { id: message.$id } }
+                            { where: { id: message.$id } },
                         )
                         if (affectedRowsMessage === 0 && affectedRowsFile === 0) {
                             return resolve(responseFindDatabase({ err: 1, msg: 'Failed to update message or file' }))
@@ -104,14 +104,14 @@ class MessageService {
                             message: message.dataValues,
                             room: room?.dataValues,
                             file: file.dataValues,
-                            user: user?.dataValues
+                            user: user?.dataValues,
                         }
 
                         return resolve(
                             responseFindDatabase({
                                 err: 0,
-                                response: { message: messageResponse }
-                            })
+                                response: { message: messageResponse },
+                            }),
                         )
                     }
                 }
@@ -126,7 +126,7 @@ class MessageService {
         idRoom,
         idUser,
         contentMessage,
-        fileAttributes
+        fileAttributes,
     }: CreateMessageAttributesService): Promise<Response> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -149,9 +149,9 @@ class MessageService {
                             'jti',
                             'updatedAt',
                             'sub',
-                            'email_verified'
-                        ]
-                    }
+                            'email_verified',
+                        ],
+                    },
                 })
 
                 switch (type) {
@@ -165,7 +165,7 @@ class MessageService {
                         const message = {
                             room,
                             file,
-                            user
+                            user,
                         }
                         return resolve(responseFindDatabase({ err: 0, response: { message: message } }))
                     }
@@ -175,7 +175,7 @@ class MessageService {
                         const message = {
                             message: newMessage,
                             user: user,
-                            room: room
+                            room: room,
                         }
 
                         return resolve(responseFindDatabase({ err: 0, response: { message: message } }))
@@ -201,14 +201,14 @@ class MessageService {
                     where: { idRoom: idRoom },
                     attributes: {
                         exclude: ['idRoom', 'idFile', 'idUser'],
-                        include: ['id', 'contentMessage', 'updatedAt']
+                        include: ['id', 'contentMessage', 'updatedAt'],
                     },
                     order: [['updatedAt', 'DESC']],
                     include: [
                         {
                             model: File,
                             as: 'file',
-                            attributes: ['id', 'fileName', 'path', 'originalName']
+                            attributes: ['id', 'fileName', 'path', 'originalName'],
                         },
                         {
                             model: User,
@@ -226,16 +226,16 @@ class MessageService {
                                     'jti',
                                     'updatedAt',
                                     'sub',
-                                    'email_verified'
-                                ]
-                            }
+                                    'email_verified',
+                                ],
+                            },
                         },
                         {
                             model: Room,
                             as: 'room',
-                            attributes: { include: ['id', 'roomName', 'users'] }
-                        }
-                    ]
+                            attributes: { include: ['id', 'roomName', 'users'] },
+                        },
+                    ],
                 })
 
                 return resolve(responseFindDatabase({ err: 0, response: { messages: messages } }))
@@ -293,7 +293,7 @@ class MessageService {
                         } else {
                             throw notFoundDatabase('file', idFile)
                         }
-                    })()
+                    })(),
                 )
             }
 

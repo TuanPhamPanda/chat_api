@@ -122,27 +122,27 @@ Room.init(
     {
         id: {
             type: DataTypes.STRING,
-            primaryKey: true
+            primaryKey: true,
         },
         roomName: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         description: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         groupAvatar: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
         },
         background: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
         },
         fileName: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
         },
         users: {
             type: DataTypes.JSON,
@@ -159,22 +159,22 @@ Room.init(
             },
             set(value: string[]) {
                 this.setDataValue('users', value)
-            }
+            },
         },
         createdAt: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
-            allowNull: true
-        }
+            allowNull: true,
+        },
     },
     {
         sequelize,
         modelName: 'room',
-        tableName: 'rooms'
-    }
+        tableName: 'rooms',
+    },
 )
 
 Room.addHook('afterCreate', async (room: Room) => {

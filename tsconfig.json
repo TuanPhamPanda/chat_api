@@ -1,25 +1,24 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "./dist",
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    }    
-  },
-  "include": [
-    "src/**/*.ts"
-, "src/services/text.ts"  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "commonjs",
+        "rootDir": "./src",
+        "strict": true,
+        "types": ["estree"],
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "outDir": "./build",
+        "baseUrl": "./src",
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "paths": {
+            "@/*": ["*"]
+        }
+    },
+    "include": ["*.ts", "src/**/*.ts"],
+    "exclude": ["node_modules", "build"]
 }

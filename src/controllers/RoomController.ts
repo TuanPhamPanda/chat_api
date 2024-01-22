@@ -11,7 +11,7 @@ class RoomController {
                 .object<{ roomName: string; userId: string; description: string }>({
                     roomName: joi.string().required(),
                     description: joi.string().required(),
-                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate(request.body)
 
@@ -29,7 +29,7 @@ class RoomController {
             const { error, value } = joi
                 .object<{ roomName: string; userId: string }>({
                     roomName: joi.string().required(),
-                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate(request.body)
 
@@ -47,7 +47,7 @@ class RoomController {
             const { error, value } = joi
                 .object<{ roomName: string; userId: string }>({
                     roomName: joi.string().required(),
-                    userId: joi.string().uuid({ version: 'uuidv4' }).required()
+                    userId: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate(request.body)
 
@@ -80,7 +80,7 @@ class RoomController {
         try {
             const { error, value } = joi
                 .object<{ id: string }>({
-                    id: joi.string().uuid({ version: 'uuidv4' }).required()
+                    id: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate(request.params)
 
@@ -97,7 +97,7 @@ class RoomController {
         try {
             const { error, value } = joi
                 .object<{ id: string }>({
-                    id: joi.string().uuid({ version: 'uuidv4' }).required()
+                    id: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate(request.params)
 

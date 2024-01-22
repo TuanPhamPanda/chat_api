@@ -7,7 +7,7 @@ class AuthorizationService {
         return new Promise(async (resolve, reject) => {
             try {
                 const userData = await User.findOne({
-                    where: { sub: user.sub }
+                    where: { sub: user.sub },
                 })
                 if (!userData) {
                     await user.save()
@@ -19,14 +19,14 @@ class AuthorizationService {
                           name: userData.name,
                           picture: userData.picture,
                           familyName: userData.family_name,
-                          givenName: userData.given_name
+                          givenName: userData.given_name,
                       }
                     : {
                           id: user.id,
                           name: user.name,
                           picture: user.picture,
                           familyName: user.family_name,
-                          givenName: user.given_name
+                          givenName: user.given_name,
                       }
                 return resolve(responseFindDatabase({ err: 0, response: { user: userResponse } }))
             } catch (error: any) {

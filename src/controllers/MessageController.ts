@@ -16,7 +16,7 @@ class MessageController {
                     fileName: request.file.filename,
                     path: request.file.path,
                     originalName: request.file.originalname,
-                    size: request.file.size
+                    size: request.file.size,
                 }
             }
 
@@ -30,9 +30,9 @@ class MessageController {
                         fileName: joi.string().required(),
                         path: joi.string().uri().required(),
                         originalName: joi.string().required(),
-                        size: joi.number().required()
+                        size: joi.number().required(),
                     })
-                    .optional()
+                    .optional(),
             })
 
             if (file) {
@@ -40,7 +40,7 @@ class MessageController {
                     ...request.body,
                     idUser: (request as any).idUser,
                     type: 'file',
-                    fileAttributes: file
+                    fileAttributes: file,
                 })
                 if (error) {
                     await cloudinary.uploader.destroy(file.fileName)
@@ -53,7 +53,7 @@ class MessageController {
                 const { error, value } = messageSchema.validate({
                     ...request.body,
                     type: 'message',
-                    idUser: (request as any).idUser
+                    idUser: (request as any).idUser,
                 })
                 if (error) {
                     return badRequest(response, error.details[0].message)
@@ -111,7 +111,7 @@ class MessageController {
                     path: request.file.path,
                     originalName: request.file.originalname,
                     id: request.body?.idFile,
-                    size: request.file.size
+                    size: request.file.size,
                 }
             }
 
@@ -127,9 +127,9 @@ class MessageController {
                         path: joi.string().uri().required(),
                         originalName: joi.string().required(),
                         id: joi.string().uuid({ version: 'uuidv4' }).required(),
-                        size: joi.number().required()
+                        size: joi.number().required(),
                     })
-                    .optional()
+                    .optional(),
             })
 
             if (file) {
@@ -141,7 +141,7 @@ class MessageController {
                     idUser: (request as any).idUser,
                     type: 'file',
                     fileAttributes: file,
-                    idMessage: request.params.id
+                    idMessage: request.params.id,
                 })
                 if (error) {
                     await cloudinary.uploader.destroy(file.fileName)
@@ -165,7 +165,7 @@ class MessageController {
                     ...request.body,
                     type: 'message',
                     idUser: (request as any).idUser,
-                    idMessage: request.params.id
+                    idMessage: request.params.id,
                 })
                 if (error) {
                     return badRequest(response, error.details[0].message)
@@ -183,11 +183,7 @@ class MessageController {
 
     public async deleteMessage(request: Request, response: Response) {
         try {
-            const { error, value } = joi
-                .string()
-                .uuid({ version: 'uuidv4' })
-                .required()
-                .validate(request.params?.id)
+            const { error, value } = joi.string().uuid({ version: 'uuidv4' }).required().validate(request.params?.id)
             if (error) {
                 return badRequest(response, error.details[0].message)
             }

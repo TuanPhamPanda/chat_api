@@ -90,46 +90,46 @@ Message.init(
     {
         id: {
             type: DataTypes.STRING,
-            primaryKey: true
+            primaryKey: true,
         },
         idFile: {
             type: DataTypes.STRING,
             references: {
                 model: File,
-                key: 'id'
-            }
+                key: 'id',
+            },
         },
         idRoom: {
             type: DataTypes.STRING,
             references: {
                 model: Room,
-                key: 'id'
-            }
+                key: 'id',
+            },
         },
         idUser: {
             type: DataTypes.STRING,
             references: {
                 model: User,
-                key: 'id'
-            }
+                key: 'id',
+            },
         },
         contentMessage: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
         },
         createdAt: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
-            allowNull: true
-        }
+            allowNull: true,
+        },
     },
     {
         sequelize,
         modelName: 'message',
-        tableName: 'messages'
-    }
+        tableName: 'messages',
+    },
 )
 
 Message.addHook('afterCreate', (message: Message) => {
@@ -142,15 +142,15 @@ Message.addHook('beforeValidate', (message: Message) => {
 
 Message.belongsTo(File, {
     foreignKey: 'idFile',
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
 })
 
 Message.belongsTo(Room, {
-    foreignKey: 'idRoom'
+    foreignKey: 'idRoom',
 })
 
 Message.belongsTo(User, {
-    foreignKey: 'idUser'
+    foreignKey: 'idUser',
 })
 
 export default Message

@@ -16,7 +16,7 @@ class MessageRoute {
             upload.single('file'),
             authorization.handleAuthentication,
             authorization.checkUserInRoom,
-            messageController.createMessageRoom
+            messageController.createMessageRoom,
         )
 
         this.router.get('/:idRoom', messageController.getAllMessageByIdRoom)
@@ -24,14 +24,14 @@ class MessageRoute {
             '/:id',
             authorization.handleAuthentication,
             authorization.checkUserInRoom,
-            messageController.deleteMessage
+            messageController.deleteMessage,
         )
         this.router.put(
             '/:id',
             upload.single('file'),
             authorization.handleAuthentication,
             authorization.checkUserInRoom,
-            messageController.updateMessage
+            messageController.updateMessage,
         )
     }
 

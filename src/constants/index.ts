@@ -3,20 +3,20 @@ import Response from './Response'
 const notFoundDatabase = (tableName: string, id: string): Response => {
     return {
         err: 1,
-        msg: `No ${tableName} found with id ${id}`
+        msg: `No ${tableName} found with id ${id}`,
     }
 }
 
 const internalSeverDatabase = (message: string): Response => {
     return {
         err: 1,
-        msg: message
+        msg: message,
     }
 }
 
 const responseFindDatabase = (response: Response): Response => {
     const result: Record<string, any> = {
-        err: response.err ?? 0
+        err: response.err ?? 0,
     }
 
     if (response.msg) {

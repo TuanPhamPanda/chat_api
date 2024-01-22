@@ -13,8 +13,8 @@ const sequelize = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
     timezone: '+07:00',
     dialectOptions: {
         dateStrings: true,
-        typeCast: true
-    }
+        typeCast: true,
+    },
 })
 
 export default sequelize

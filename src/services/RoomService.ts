@@ -11,7 +11,7 @@ class RoomService {
             rooms.map(async (room) => {
                 const [users, responseMessage] = await Promise.all([
                     this.getUsers(room.get('users') as string[]),
-                    this.getMessagesByRoomId(room.dataValues.id, 1)
+                    this.getMessagesByRoomId(room.dataValues.id, 1),
                 ])
                 const responseRoom: IRoomDTO = {
                     id: room.dataValues.id,
@@ -22,11 +22,11 @@ class RoomService {
                     groupAvatar: room.dataValues.groupAvatar,
                     fileName: room.dataValues.fileName,
                     description: room.dataValues.description,
-                    users: users
+                    users: users,
                 }
 
                 return responseRoom
-            })
+            }),
         )
     }
 
@@ -41,7 +41,7 @@ class RoomService {
                 familyName: user?.dataValues.family_name,
                 givenName: user?.dataValues.given_name,
                 name: user?.dataValues.given_name,
-                picture: user?.dataValues.picture
+                picture: user?.dataValues.picture,
             }
             return responseUser
         })
@@ -66,7 +66,7 @@ class RoomService {
         const messages = await Message.findAll({
             where: { idRoom: roomId },
             order: [['updatedAt', 'ASC']],
-            limit
+            limit,
         })
 
         const messagePromises = messages.map(async (message) => {
@@ -81,13 +81,13 @@ class RoomService {
                     givenName: user?.dataValues.given_name,
                     id: user?.dataValues.id,
                     name: user?.dataValues.name,
-                    picture: user?.dataValues.picture
+                    picture: user?.dataValues.picture,
                 },
                 type: file ? 'file' : 'message',
                 updatedAt: message.dataValues.updatedAt,
                 idFile: file ? file.dataValues.id : undefined,
                 fileSize: file ? file.dataValues.size : undefined,
-                fileName: file ? file.dataValues.originalName : undefined
+                fileName: file ? file.dataValues.originalName : undefined,
             }
             return responseMessage
         })
@@ -106,10 +106,10 @@ class RoomService {
                 const roomsByIdUser = await Room.findAll({
                     where: {
                         users: {
-                            [Op.substring]: idUser
-                        }
+                            [Op.substring]: idUser,
+                        },
                     },
-                    order: [['updatedAt', 'DESC']]
+                    order: [['updatedAt', 'DESC']],
                 })
                 if (roomsByIdUser.length === 0) {
                     return resolve(responseFindDatabase({ err: 0, response: { rooms: [] } }))
@@ -151,8 +151,8 @@ class RoomService {
                     return resolve(
                         responseFindDatabase({
                             err: 1,
-                            msg: `Room name ${roomName} already exists. Please give another name`
-                        })
+                            msg: `Room name ${roomName} already exists. Please give another name`,
+                        }),
                     )
                 }
                 const newRoom = new Room({ roomName, users: [userId], description })
@@ -164,7 +164,7 @@ class RoomService {
                     familyName: user.family_name,
                     givenName: user.given_name,
                     name: user.name,
-                    picture: user.picture
+                    picture: user.picture,
                 }
 
                 const responseRoom: IRoomDTO = {
@@ -176,7 +176,7 @@ class RoomService {
                     groupAvatar: newRoom.dataValues.groupAvatar,
                     fileName: newRoom.dataValues.fileName,
                     description: newRoom.dataValues.description,
-                    users: [responseUser]
+                    users: [responseUser],
                 }
 
                 return resolve(responseFindDatabase({ err: 0, response: { room: responseRoom } }))
@@ -214,7 +214,7 @@ class RoomService {
                             const roomAttributes: RoomAttributes = {
                                 id: existingRoom.$id,
                                 roomName: existingRoom.$roomName,
-                                users: usersInRoom
+                                users: usersInRoom,
                             }
                             const room = new Room(roomAttributes)
                             const [affectedRows] = await Room.update(room.dataValues, { where: { id: room.$id } })
@@ -224,17 +224,17 @@ class RoomService {
                             const users = await Promise.all(
                                 usersInRoom.map((u: string) => {
                                     const user = User.findByPk(u, {
-                                        attributes: { exclude: ['createdAt', 'updatedAt'] }
+                                        attributes: { exclude: ['createdAt', 'updatedAt'] },
                                     })
                                     return user
-                                })
+                                }),
                             )
 
                             return resolve(
                                 responseFindDatabase({
                                     err: 0,
-                                    response: { room: { ...room.dataValues, users: users } }
-                                })
+                                    response: { room: { ...room.dataValues, users: users } },
+                                }),
                             )
                         }
                     }
@@ -264,8 +264,8 @@ class RoomService {
                                 return resolve(
                                     responseFindDatabase({
                                         err: 1,
-                                        msg: 'You are the group leader so you cannot delete yourself'
-                                    })
+                                        msg: 'You are the group leader so you cannot delete yourself',
+                                    }),
                                 )
                             }
                             if (!usersInRoom.some((u) => u === userID)) {
@@ -275,7 +275,7 @@ class RoomService {
                             const roomAttributes: RoomAttributes = {
                                 id: existingRoom.$id,
                                 roomName: existingRoom.$roomName,
-                                users: usersInRoom
+                                users: usersInRoom,
                             }
                             const room = new Room(roomAttributes)
                             const [affectedRows] = await Room.update(room.dataValues, { where: { id: room.$id } })
@@ -285,16 +285,16 @@ class RoomService {
                             const users = await Promise.all(
                                 usersInRoom.map((u: string) => {
                                     const user = User.findByPk(u, {
-                                        attributes: { exclude: ['createdAt', 'updatedAt'] }
+                                        attributes: { exclude: ['createdAt', 'updatedAt'] },
                                     })
                                     return user
-                                })
+                                }),
                             )
                             return resolve(
                                 responseFindDatabase({
                                     err: 0,
-                                    response: { room: { ...room.dataValues, users: users } }
-                                })
+                                    response: { room: { ...room.dataValues, users: users } },
+                                }),
                             )
                         }
                     }
@@ -325,7 +325,7 @@ class RoomService {
                                 }
                             }
                             await Message.destroy({ where: { id: mes.$id } })
-                        })
+                        }),
                     )
                 }
                 try {

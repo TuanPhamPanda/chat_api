@@ -1,10 +1,9 @@
-import express, { Express, Request, Response, NextFunction } from 'express'
+import express, { Express } from 'express'
 import dotenv from 'dotenv'
+dotenv.config()
 import bodyParser from 'body-parser'
 import routeChat from '@/routers'
 import cors from 'cors'
-
-dotenv.config()
 
 const app: Express = express()
 const port = process.env.PORT || 8080

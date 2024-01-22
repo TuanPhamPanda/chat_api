@@ -27,80 +27,80 @@ User.init(
     {
         id: {
             type: DataTypes.STRING,
-            primaryKey: true
+            primaryKey: true,
         },
         iss: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         nbf: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
         },
         aud: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         sub: {
             type: DataTypes.STRING(21),
-            allowNull: false
+            allowNull: false,
         },
         email: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         email_verified: {
             type: DataTypes.BOOLEAN,
-            allowNull: false
+            allowNull: false,
         },
         azp: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         picture: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         given_name: {
             type: DataTypes.STRING,
             allowNull: false,
-            defaultValue: ''
+            defaultValue: '',
         },
         family_name: {
             type: DataTypes.STRING,
             allowNull: false,
-            defaultValue: ''
+            defaultValue: '',
         },
         iat: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
         },
         exp: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
         },
         jti: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         createdAt: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
-            allowNull: true
-        }
+            allowNull: true,
+        },
     },
     {
         sequelize,
         modelName: 'user',
-        tableName: 'users'
-    }
+        tableName: 'users',
+    },
 )
 
 User.addHook('afterCreate', async (user: User, options: any) => {

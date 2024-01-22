@@ -96,38 +96,38 @@ File.init(
     {
         id: {
             type: DataTypes.STRING,
-            primaryKey: true
+            primaryKey: true,
         },
         fileName: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         originalName: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         path: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
         },
         size: {
             type: DataTypes.NUMBER,
-            allowNull: false
+            allowNull: false,
         },
         createdAt: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
-            allowNull: true
-        }
+            allowNull: true,
+        },
     },
     {
         sequelize,
         modelName: 'file',
-        tableName: 'files'
-    }
+        tableName: 'files',
+    },
 )
 
 File.addHook('afterCreate', async (file: File) => {

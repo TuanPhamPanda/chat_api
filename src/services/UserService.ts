@@ -7,7 +7,7 @@ class UserService {
             try {
                 const usersData = await User.findAll({
                     attributes: ['id', 'email', 'name', 'picture', 'given_name', 'family_name'],
-                    order: [['createdAt', 'DESC']]
+                    order: [['createdAt', 'DESC']],
                 })
 
                 return resolve(responseFindDatabase({ err: 0, response: { users: usersData } }))

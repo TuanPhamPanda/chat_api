@@ -10,7 +10,7 @@ class Authorization {
             const { error, value } = joi
                 .object<{ idRoom: string; idUser: string }>({
                     idRoom: joi.string().uuid({ version: 'uuidv4' }).required(),
-                    idUser: joi.string().uuid({ version: 'uuidv4' }).required()
+                    idUser: joi.string().uuid({ version: 'uuidv4' }).required(),
                 })
                 .validate({ idRoom: req.body?.idRoom, idUser: (req as any).idUser })
 
@@ -44,11 +44,7 @@ class Authorization {
 
     public async handleAuthentication(request: Request, response: Response, next: NextFunction) {
         try {
-            const { error, value } = joi
-                .string()
-                .uuid({ version: 'uuidv4' })
-                .required()
-                .validate(request.body?.idUser)
+            const { error, value } = joi.string().uuid({ version: 'uuidv4' }).required().validate(request.body?.idUser)
             if (error) {
                 if (request.file) {
                     cloudinary.uploader.destroy(request.file.filename)
